@@ -12,14 +12,6 @@ Base.metadata.create_all(
     bind=engine
 )  
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 @app.post("/api/register", tags=["register"])
 async def register(data: Register_example): 
     if data.password != data.re_pw:
@@ -60,17 +52,24 @@ async def login(data: Login_example):
     token = encToken(user.id)
     return ({"ok": "true"}, token)
 
-@app.post("/api/application", tags=["application"])
+@app.post("/api/application", tags=["application"]) # 임시저장 엔드포인트 
 async def application(data : Application_example, token : str = Header(...)):
     user = check_auth(token)
     
     if not user: 
         return {"로그인 후 이용 가능합니다."}
     
+    with SessionLocal() as db: 
+        user_info = db.query(User).filter(User.id == user).first()
+        
+    if user_info.is_submited == True:
+        raise {"ok": "False"}
+    
     db_value = Application(
-        email = data.email,
-        content = data.content,
-        phone = data.phone
+        bio = data.bip,
+        motive = data.motive,
+        plan = data.plan,
+        which_department = data.which_department
     )
     
     with SessionLocal() as db:  
@@ -78,6 +77,30 @@ async def application(data : Application_example, token : str = Header(...)):
         db.commit()
 
     return {"ok": "True"}
+
+@app.post("/api/final_submit", tags=["application"]) # 최종제출 엔드포인트
+async def final_submit(data : Application_example, token : str = Header(...));
+    user = check_auth(token)
+    
+    with SessionLocal() as db: 
+        user_info = db.query(User).filter(User.id == user).first()
+        
+    if user_info.is_submited == True:
+        raise {"ok": "False"}
+    
+    db_value = Application(
+        bio = data.bip,
+        motive = data.motive,
+        plan = data.plan,
+        which_department = data.which_department
+    )
+    
+    with SessionLocal() as db:  
+        db.add(db_value)  
+        db.commit()
+    
+    return {"ok": "True"}
+
 
 @app.post("/api/authcheck", tags=["authcheck test"])
 async def authcheck(token : str = Header(...)):
