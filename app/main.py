@@ -66,7 +66,7 @@ async def application(data : Application_example, token : str = Header(...)):
         raise {"ok": "False"}
     
     db_value = Application(
-        bio = data.bip,
+        bio = data.bio,
         motive = data.motive,
         plan = data.plan,
         which_department = data.which_department
@@ -79,7 +79,7 @@ async def application(data : Application_example, token : str = Header(...)):
     return {"ok": "True"}
 
 @app.post("/api/final_submit", tags=["application"]) # 최종제출 엔드포인트
-async def final_submit(data : Application_example, token : str = Header(...));
+async def final_submit(data : Application_example, token : str = Header(...)):
     user = check_auth(token)
     
     with SessionLocal() as db: 
