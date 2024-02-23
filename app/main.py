@@ -62,14 +62,15 @@ async def application(data : Application_example, token : str = Header(...)):
     with SessionLocal() as db: 
         user_info = db.query(User).filter(User.id == user).first()
         
-    if user_info.is_submited == True:
+    if user_info.is_submitted == True:
         raise {"ok": "False"}
     
     db_value = Application(
         bio = data.bio,
         motive = data.motive,
         plan = data.plan,
-        which_department = data.which_department
+        which_department = data.which_department,
+        user_id = user
     )
     
     with SessionLocal() as db:  
@@ -85,14 +86,15 @@ async def final_submit(data : Application_example, token : str = Header(...)):
     with SessionLocal() as db: 
         user_info = db.query(User).filter(User.id == user).first()
         
-    if user_info.is_submited == True:
+    if user_info.is_submitted == True:
         raise {"ok": "False"}
     
     db_value = Application(
         bio = data.bip,
         motive = data.motive,
         plan = data.plan,
-        which_department = data.which_department
+        which_department = data.which_department,
+        user_id = user
     )
     
     with SessionLocal() as db:  

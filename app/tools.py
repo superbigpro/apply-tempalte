@@ -3,11 +3,13 @@ import jwt
 import time
 from datetime import datetime, timedelta
 import hashlib
+from dotenv import load_dotenv
+load_dotenv()
 
 DAY = 86400
 
 SECRET = os.environ.get("SECRET")
-salt = os.environ.get("salt")
+salt = os.environ.get("SALT")
 
 def encToken(user_id):
   end = int(time.time()) + DAY
@@ -54,4 +56,4 @@ def admin_check_auth(token):
     return False
 
 def hashing_pw(plain_pw):
-    return hashlib.sha256((plain_pw + salt).encode('utf-8')).hexdigest()
+  return hashlib.sha256((plain_pw + salt).encode('utf-8')).hexdigest()

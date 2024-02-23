@@ -10,7 +10,7 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     password = Column(String(64), nullable=False)
     school_id = Column(String(30), nullable=False)
-    is_submitted = Column(Boolean, nullable=False, default=False)
+    is_submitted = Column(Boolean, nullable=True, default=False)
     role = Column(String(10), nullable=False, default="user")
 
     applications = relationship('Application', back_populates='user')
@@ -19,16 +19,17 @@ class User(Base):
 class Application(Base):
     __tablename__ = "application"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String(100), nullable=False)
-    content = Column(String(1000), nullable=False)
-    phone = Column(Integer, nullable=False)
+    bio = Column(String(2000), nullable=False)
+    motive = Column(String(2000), nullable=False)
+    plan = Column(String(2000), nullable=False)
+    which_department = Column(String(10), nullable=False)
 
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship('User', back_populates='applications')
 
 
 class Register_example(BaseModel):
-    username: constr(min_length=6, max_length=30)
+    username: str
     school_id : str
     password: str
     re_pw: str
@@ -45,7 +46,7 @@ class Login_example(BaseModel):
     password: str
     
 class Application_example(BaseModel):
-    email : str 
-    content : str 
-    phone : str 
-    
+    bio : str 
+    motive : str 
+    plan : str 
+    which_department : str
