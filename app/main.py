@@ -2,10 +2,17 @@ from fastapi import FastAPI, HTTPException, Header, Response
 from pydantic import BaseModel, constr
 from sqlalchemy import func, select
 from datetime import datetime 
+import sys
 
 app = FastAPI()
 
-from database import *
+from pathlib import Path
+current_dir = Path(__file__).resolve().parent
+
+from database.core import *
+from database.user import * 
+from database.application import *
+
 from model import *
 from tools import *
 
