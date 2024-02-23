@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Header, Response
 from pydantic import BaseModel, constr
-from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import func, select
+from datetime import datetime 
 
 app = FastAPI()
 
@@ -33,7 +34,6 @@ async def register(data: Register_example):
 
     return {"ok": "True"}
 
-
 @app.post("/api/login", tags=["login"])
 async def login(data: Login_example):
     pw = data.password
@@ -59,18 +59,13 @@ async def application(data : Application_example, token : str = Header(...)):
     if not user: 
         return {"로그인 후 이용 가능합니다."}
     
-    with SessionLocal() as db: 
-        user_info = db.query(User).filter(User.id == user).first()
-        
-    if user_info.is_submitted == True:
-        raise {"ok": "False"}
-    
     db_value = Application(
         bio = data.bio,
         motive = data.motive,
         plan = data.plan,
         which_department = data.which_department,
-        user_id = user
+        user_id = user,
+        last_modified=datetime.now().isoformat()
     )
     
     with SessionLocal() as db:  
@@ -87,14 +82,15 @@ async def final_submit(data : Application_example, token : str = Header(...)):
         user_info = db.query(User).filter(User.id == user).first()
         
     if user_info.is_submitted == True:
-        raise {"ok": "False"}
+        raise {"ok": "False", "message":"이미 제출하셨습니다."}
     
     db_value = Application(
         bio = data.bip,
         motive = data.motive,
         plan = data.plan,
         which_department = data.which_department,
-        user_id = user
+        user_id = user,
+        last_modified=datetime.now().isoformat()
     )
     
     with SessionLocal() as db:  
@@ -103,6 +99,28 @@ async def final_submit(data : Application_example, token : str = Header(...)):
     
     return {"ok": "True"}
 
+
+@app.get("/api/show_apply", tags=["application"]) # 임시저장 불러오기
+async def showApply(token : str = Header(...)):
+    user = check_auth(token)
+    
+    if not user:
+        return {"ok":"False", "message":"토큰이 올바르지 않습니다."}
+    
+    with SessionLocal() as db:
+        subquery = (
+            db.query(func.max(Application.id).label('max_id'))
+            .filter(Application.user_id == user)
+            .group_by(Application.which_department)
+        ).subquery()
+
+        latest_applications = (
+            db.query(Application)
+            .join(subquery, Application.id == subquery.c.max_id)
+            .all()
+        )
+
+    return {"ok":"True", "value":latest_applications}
 
 @app.post("/api/authcheck", tags=["authcheck test"])
 async def authcheck(token : str = Header(...)):
